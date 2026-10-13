@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ArkSeek · 管理后台</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="#overview"><span class="mark">A</span><span>ArkSeek<small>管理后台</small></span></a>
+    <nav aria-label="后台导航">
+      <button data-view="overview" type="button">运行概览</button>
+      <button data-view="sessions" type="button">会话记录</button>
+      <button data-view="users" type="button">用户与记忆</button>
+      <button data-view="monitor" type="button">请求监测</button>
+      <button data-view="logs" type="button">运行日志</button>
+      <button data-view="roadmap" type="button">后续规划</button>
+    </nav>
+    <div class="sidebar-foot"><span class="pill">第一版 · 只读</span><p>本机运行<br>QQ机器人独立运行</p></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><span id="mode">正在连接后台</span><div class="top-actions"><label><input id="auto" type="checkbox" checked> 自动刷新</label><button id="refresh" type="button">刷新</button><button id="theme" type="button">切换主题</button></div></header>
+    <main>
+      <div class="page-heading"><div><h1 id="title">运行概览</h1><p id="subtitle">查看系统状态与最近请求</p></div><span id="updated" class="muted"></span></div>
+      <div id="error" role="alert" hidden></div>
+      <div id="content" aria-live="polite"><p class="empty">正在载入本机后台…</p></div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

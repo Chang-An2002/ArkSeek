@@ -1,0 +1,382 @@
+[
+  {
+    "path": ".gitattributes",
+    "sha256": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c"
+  },
+  {
+    "path": ".gitignore",
+    "sha256": "4b1de1c072c12a95f27229650b2858ffb85fa020ffa5cebae7511b30f1e7fdbd"
+  },
+  {
+    "path": "arkseek/.env.example",
+    "sha256": "d89717dae22e99473ee50a18ad697ac270c638f600e18a308bb77a371bfacd14"
+  },
+  {
+    "path": "arkseek/admin/__init__.py",
+    "sha256": "db458da77560063805495738596414691897bfd09303cbd471113fe4f3399414"
+  },
+  {
+    "path": "arkseek/admin/__main__.py",
+    "sha256": "8969bf4f68e1b6b6a2e64528252314794bb62cc1445cbd8e0f8828baa3eb60a0"
+  },
+  {
+    "path": "arkseek/admin/demo.py",
+    "sha256": "92a6a8ab01515022457cdc1ada211b37abd4351204fef4fd25ca6838e390abea"
+  },
+  {
+    "path": "arkseek/admin/repository.py",
+    "sha256": "5443be30ab61177077f21ae16b70bb2d8c364337bf7c528fa8573955147cf70d"
+  },
+  {
+    "path": "arkseek/admin/server.py",
+    "sha256": "fdac8b96af032ede2039e197c89f88a8883afe7058bdb686d10e680335a8093f"
+  },
+  {
+    "path": "arkseek/admin/test_admin.py",
+    "sha256": "ca428fb42f327d1303da80f1036dcdeae29ab285c62319e3d431b13ae75def07"
+  },
+  {
+    "path": "arkseek/admin/web/app.css",
+    "sha256": "66dbb9193fe11d0d9920072a5e132dc59007bdb3a081b178f81ca14f2bd18803"
+  },
+  {
+    "path": "arkseek/admin/web/app.js",
+    "sha256": "e485e35bfd087867614ef27841b928df2520b72376cb9f2022f0fc6a8909ea48"
+  },
+  {
+    "path": "arkseek/admin/web/index.html",
+    "sha256": "7688f2d8cc10d79f0df3dcf5090377f8bf33d76fe9cec649f8ce72d91a46189c"
+  },
+  {
+    "path": "arkseek/data/knowledge_base/demo.txt",
+    "sha256": "3b39c50462233c0a69bec8797f7dee45a4c63779504472dde9f26e28be3fa94f"
+  },
+  {
+    "path": "arkseek/data/knowledge_base/README.md",
+    "sha256": "71a21ce8a7287c6f7b0d93c84da5d4b1fa6eb5b8dc255e6e3cfdbde4d5286523"
+  },
+  {
+    "path": "arkseek/README.md",
+    "sha256": "06c714416dad4325e34cef9ae2708efb8163b5b4294cf75a9d9d0f08609f300b"
+  },
+  {
+    "path": "arkseek/requirements.lock.txt",
+    "sha256": "a33c1b245e29ea12536bd97360066594034d05a4b7f3d6e5cac2398099b93fe3"
+  },
+  {
+    "path": "arkseek/requirements.txt",
+    "sha256": "2e7c23a43a32712c8adf2242039dccb3d2440a6dbc4af7dc123e2213f9469a8c"
+  },
+  {
+    "path": "arkseek/src/admin_monitor.py",
+    "sha256": "c130d9dbdc127dc7971073ebfb6b19d75595e51b673975750c42595cfa3c1ee7"
+  },
+  {
+    "path": "arkseek/src/bot_profile.py",
+    "sha256": "17bb4742b9803a01eebffe96e1f75f44385a530f1eba29aceb4b9d5e9832bafd"
+  },
+  {
+    "path": "arkseek/src/build_kb_questions.py",
+    "sha256": "f05353a1b5bcf928a52609b9afcfe41f0abb0b693dc0951e4b176222e6611252"
+  },
+  {
+    "path": "arkseek/src/build_onnx_reranker.py",
+    "sha256": "2c9d63bfb9289aae685d0447af157ff8a388ea52897a310ee72b389f594836e2"
+  },
+  {
+    "path": "arkseek/src/build_openvino_reranker.py",
+    "sha256": "021206f9f470c72d39eb2c07041792ef67c4889dd4c5003a3a2ca2bcf90cd30e"
+  },
+  {
+    "path": "arkseek/src/chat_cli.py",
+    "sha256": "aaaaf416ef2c8a22e148137d293a3526793cc00ca3d7408b4c1aee06a8846d87"
+  },
+  {
+    "path": "arkseek/src/chroma_index.py",
+    "sha256": "4a29c11b3f2602e7d2fe144cf82065e5b93242ba2fd9955034ee43470f7efba2"
+  },
+  {
+    "path": "arkseek/src/chunking.py",
+    "sha256": "494ada15f8126578ef38230937f590eba6f0ad44617b09bb9240605d9c3cc7c9"
+  },
+  {
+    "path": "arkseek/src/cli.py",
+    "sha256": "dbdc4973a361f3a11c06d7139a87752d0e7a5eeb8c4fbf81d06201972da48b27"
+  },
+  {
+    "path": "arkseek/src/concurrency.py",
+    "sha256": "6225784ae2ede1fad6d4bc8c679c9ad5431218de794994a2342ffc99e6ef0195"
+  },
+  {
+    "path": "arkseek/src/context_format.py",
+    "sha256": "a1130b3efcc7425d56f3d1dce9c23c4350a6dc723e90ee2e3fd40e6367360672"
+  },
+  {
+    "path": "arkseek/src/conversation_memory.py",
+    "sha256": "988f4cd512ce030b86aab163312965ec73b80a84609b32654bcfbe8a4ca4e136"
+  },
+  {
+    "path": "arkseek/src/dense_retriever.py",
+    "sha256": "4e8214b7139dec107cea2f2db7ff1e4a65bea692dab81fff0b6a6f2d13b71cd1"
+  },
+  {
+    "path": "arkseek/src/doc_loaders.py",
+    "sha256": "740c3db3c73c2c6c850a7c3d55371bd9406779fde45bcf4fcc3d92df188ee9a7"
+  },
+  {
+    "path": "arkseek/src/fact_extractor.py",
+    "sha256": "f8b8f2748db605d21d9f85d01087d940af1ebc85ed8013c5da797e520948384a"
+  },
+  {
+    "path": "arkseek/src/fake_llm_client.py",
+    "sha256": "df48813fd11743053d51b8ba855bf8fa7343fde7c3836300b4dbd6967683737e"
+  },
+  {
+    "path": "arkseek/src/fusion.py",
+    "sha256": "70026e9e908c36fccd70b711c435b9d412813ecaff27d623e707ac5c3b051c7b"
+  },
+  {
+    "path": "arkseek/src/kb_questions.py",
+    "sha256": "e9c5d78c9b3a1c36465f8f7cc66f58dfa63a825528bb8147c1f5a97aa17b4b3e"
+  },
+  {
+    "path": "arkseek/src/kb_sources.py",
+    "sha256": "7c82bffd6e441a9f8dad0686759521b9cb8be0f8eb728d17fcf80a5fc2a3e936"
+  },
+  {
+    "path": "arkseek/src/length_limit.py",
+    "sha256": "da693d7d1e19501ed34b046a95ba9fe37d26e9e53c0ba491124583ed4f90b089"
+  },
+  {
+    "path": "arkseek/src/llm_client.py",
+    "sha256": "18d725d1d4092a9d105ae4fc127187dfdf1e4082e9f51543b4428057a36a0a42"
+  },
+  {
+    "path": "arkseek/src/llm_generate.py",
+    "sha256": "ff31a1bfc26fcff2cdf0fcda2dfdf887aaf5842062c84befc0a32f1f9030d90a"
+  },
+  {
+    "path": "arkseek/src/llm_json.py",
+    "sha256": "ca7be3d17a87db1397a6c11ef2c064563988ac20c79250d8973afcfa4ba0d67f"
+  },
+  {
+    "path": "arkseek/src/llm_l0_summary.py",
+    "sha256": "449c66f3761bfc3873fa1b7a070d1e15fc88aab082895beccee7295ead31ec9e"
+  },
+  {
+    "path": "arkseek/src/llm_l1.py",
+    "sha256": "61e6147d1c88436c45b4980d21f6cfd6a722f1fa154dde12ab52a29a58b6f474"
+  },
+  {
+    "path": "arkseek/src/memory_store.py",
+    "sha256": "54ed5609fac637289f473b3f3dd5e428be482b3441861a47e285802330445447"
+  },
+  {
+    "path": "arkseek/src/multiturn_test_cases.json",
+    "sha256": "06b1d85185d277e08c27874440202022b9b49b493598de81498c115390fe56e7"
+  },
+  {
+    "path": "arkseek/src/pipeline.py",
+    "sha256": "9e44b71c43ebd67c2610bdf89e72db86047fd6ca74a037b59f2ef6b5c007e743"
+  },
+  {
+    "path": "arkseek/src/profile_facts.py",
+    "sha256": "c23549c29560682264a235c56d00321432d9529e51fe35c613859b6db1f9bc03"
+  },
+  {
+    "path": "arkseek/src/prts_cargo_client.py",
+    "sha256": "b38ebbd70750ed8ec4b6a2068d4897b3f064c7224d7a863ed3f8d15ee3d3bf4f"
+  },
+  {
+    "path": "arkseek/src/prts_wiki_client.py",
+    "sha256": "ac2ff5f31e92fc75d68aba31a15e8df89d005e156b295308977e06843fc5d820"
+  },
+  {
+    "path": "arkseek/src/qq_bot.py",
+    "sha256": "9763e42e069bf4ca3e65f813a07d5c9c2fa119e5abcd95d3433b32dce434a143"
+  },
+  {
+    "path": "arkseek/src/qq_bot_echo.py",
+    "sha256": "6e8be1d1e7d5dcdd985dc21d7e5700b0e51594ac459b317b5f9dbdfb6d83f518"
+  },
+  {
+    "path": "arkseek/src/query_planner.py",
+    "sha256": "2ee2c1a56be5cb30b88deb6852a46f19ddb3f2ccc236cb7c5d57e4ba7cedb8ee"
+  },
+  {
+    "path": "arkseek/src/query_synonyms.py",
+    "sha256": "ee3c5f5f272d00fc03092a9998ded26f2913be0cf2191496184fcf8282964377"
+  },
+  {
+    "path": "arkseek/src/reranker.py",
+    "sha256": "88b6727af3baedde4ed5b91fe1169a1a6cd2619698ec0e49e9cd993d20609d41"
+  },
+  {
+    "path": "arkseek/src/run_catalog_scope_demo.py",
+    "sha256": "03b85cea5f4bff7f5c849115c688866ae099471d53bc566768bdcbd6d59a94e5"
+  },
+  {
+    "path": "arkseek/src/run_chroma_tests.py",
+    "sha256": "f5efafd608a83ade868fd954e2a6f5315df08ee66fa24112056283bfcd4469fc"
+  },
+  {
+    "path": "arkseek/src/run_comparison_tests.py",
+    "sha256": "211cc877bae911f9ad6c79c322c58fb043652f0b0c117195564b67dfe79cd67c"
+  },
+  {
+    "path": "arkseek/src/run_conversation_wiki_demo.py",
+    "sha256": "f91b9ba07781c2c9c153152548f10af342b61c6a5a1f76620307f7980a772048"
+  },
+  {
+    "path": "arkseek/src/run_disambiguation_demo.py",
+    "sha256": "674ec16e51b2dbc524715b6f8e12ff8947b29b1b8296a56a9850148df3318758"
+  },
+  {
+    "path": "arkseek/src/run_fallback_demo.py",
+    "sha256": "0fe7898fff4804de5d82ee360c6a4addc9720395a16193b588ce3982f67c019b"
+  },
+  {
+    "path": "arkseek/src/run_group_quality_live.py",
+    "sha256": "e83850f7dbd482f0de2b9fc16fc0d6fe1517d12c0decf4aceb22acdc0ad1caf8"
+  },
+  {
+    "path": "arkseek/src/run_group_quality_tests.py",
+    "sha256": "03cc0a7c58f63efd82c4bd11b78d701ea5efb4eb7897e55e22f61405ea81ce80"
+  },
+  {
+    "path": "arkseek/src/run_index_aggregation_demo.py",
+    "sha256": "9876f0805c0b73e4a48800b930b048f29d988d05c49a4772c92473677968b54b"
+  },
+  {
+    "path": "arkseek/src/run_kb_expansion_demo.py",
+    "sha256": "3b178ff4857d42819b7955a3f086d9fdaecdbd7621005447b0b541483342e5ff"
+  },
+  {
+    "path": "arkseek/src/run_kb_rewrite_demo.py",
+    "sha256": "3c968a481b4a419d0db69393bcc713a8143accf2161ea30b76d8e4cf41a7e68c"
+  },
+  {
+    "path": "arkseek/src/run_kb_scope_boundary_demo.py",
+    "sha256": "1cc0c62296ae025b61c1e4b25cf99195ae260057a94d22a36898a00ccabe66e9"
+  },
+  {
+    "path": "arkseek/src/run_l0_summary_context_demo.py",
+    "sha256": "f9b3d5df4d2b07d2c66e095293ad63e9df6ca7e8ce8ddd4f8e08af3c3f88b213"
+  },
+  {
+    "path": "arkseek/src/run_l1_merge_boundary_demo.py",
+    "sha256": "0e0a116f82ec922018a4b615e6381ec3b500230d612847505bdf59cda78e7282"
+  },
+  {
+    "path": "arkseek/src/run_l2_recall_eval.py",
+    "sha256": "8c3d40ae28e7f474c3222aa7c0445b3d782d0bdd56d7bc7798ba9b2d0059f8f8"
+  },
+  {
+    "path": "arkseek/src/run_l2_scope_demo.py",
+    "sha256": "bb06d4a314ee37c16f67444cab204078cc966828cb053c659b14ce23bee59fa4"
+  },
+  {
+    "path": "arkseek/src/run_latency_profile.py",
+    "sha256": "b8aca2e0adc63037c405363bce1da379e1a9620ec89e4365d9384839e3690a28"
+  },
+  {
+    "path": "arkseek/src/run_length_limit_demo.py",
+    "sha256": "33fa28403597b60d198780eb1e1e305e3444be8f805ae604305d5ac97899f9e0"
+  },
+  {
+    "path": "arkseek/src/run_llm_generation_demo.py",
+    "sha256": "ca1f623d617d54419c1ca2dead8fe6a060c0d894caed713eb4038795c88aad61"
+  },
+  {
+    "path": "arkseek/src/run_memory_split_demo.py",
+    "sha256": "ae0a772c83c286eb4dc11c029ea4eee2dca400d09b18a63d11385adc8367d9f8"
+  },
+  {
+    "path": "arkseek/src/run_multiturn_tests.py",
+    "sha256": "c58f67f808d472cee30b2675491f5326f649efbc48d52f6295b7ada74c46a610"
+  },
+  {
+    "path": "arkseek/src/run_openvino_rerank_eval.py",
+    "sha256": "7c398ccd576fe4a0c034e31ab7cc3798bc2bdf5328e37dc1dc863f9d34ec12d9"
+  },
+  {
+    "path": "arkseek/src/run_orchestration_regression_tests.py",
+    "sha256": "6036dca94b5402072fcfa4e8f6989b8e91b9548ad355d1b879c7132b134c22f4"
+  },
+  {
+    "path": "arkseek/src/run_owner_binding_demo.py",
+    "sha256": "2334fe3558750306c94734384efd3f1ee1f32a4931173a609d83ae9f359c4871"
+  },
+  {
+    "path": "arkseek/src/run_parallel_tests.py",
+    "sha256": "8cc7d217d0f644134c8661601757ae9c8a6ba9049692300017faa2b84984c5d3"
+  },
+  {
+    "path": "arkseek/src/run_profile_visibility_demo.py",
+    "sha256": "72a59a27762e1a38f3d82d8640f841267dc57c5cf22f6f09de31d46ac9cab543"
+  },
+  {
+    "path": "arkseek/src/run_project_phrasing_demo.py",
+    "sha256": "7a2869098007fbb9fc4fc9931ef79b762c116ccde5391e96dfb3098bb9f85fe8"
+  },
+  {
+    "path": "arkseek/src/run_prts_wiki_demo.py",
+    "sha256": "bdc5a592a7a837d993609c778534294bd666482cd4014e0bfe076b90dcf5f082"
+  },
+  {
+    "path": "arkseek/src/run_query_planner_demo.py",
+    "sha256": "3dfe8842655d2b467357d383c5c6d6f6fa44e669beff1facb0f605de9c60e6b6"
+  },
+  {
+    "path": "arkseek/src/run_rerank_maxlen_eval.py",
+    "sha256": "fe14870cfe9fef31aedc1a878bff1c5a20646f42ff3896dd7398fa5fb5ed1e36"
+  },
+  {
+    "path": "arkseek/src/run_rerank_speed_eval.py",
+    "sha256": "e052349adb92c4152abf5318aea83a64c7ee7519556038970508d2fed7a307f9"
+  },
+  {
+    "path": "arkseek/src/run_search_boundary_demo.py",
+    "sha256": "65d4034956da7d24c71e999295a196a1d0ced07b305bd27d86ad06bf4aee2997"
+  },
+  {
+    "path": "arkseek/src/run_tests.py",
+    "sha256": "3b7dd155f058730bbd3156ef26aaad949511f3a7cbd2b3e6c94a31f154f5fc55"
+  },
+  {
+    "path": "arkseek/src/runtime_logging.py",
+    "sha256": "dfdc0e6934ae5be907ae4651b18cc6f155f6b2f62f60bc55ad21ce7eaa633922"
+  },
+  {
+    "path": "arkseek/src/sparse_retriever.py",
+    "sha256": "265c9358ca38b9d0439142e66416304ea0fc30e950b358d2a9c9308a122a5533"
+  },
+  {
+    "path": "arkseek/src/test_cases.json",
+    "sha256": "9d85601f693062294dce37e87c026d46f4419d259c9d19f28f04509dde9c08da"
+  },
+  {
+    "path": "arkseek/src/timing.py",
+    "sha256": "a584646e0169c499d3f9dcd6949f4c520979b73912fd9403bc051021499fcc75"
+  },
+  {
+    "path": "arkseek/src/web_search_client.py",
+    "sha256": "289deac81403d54eeaab5330dea58dd0d26b641393bc4a85c73f0fb9cf500b73"
+  },
+  {
+    "path": "arkseek/src/wiki_router.py",
+    "sha256": "adf0902befebdfed141c9aa1761b23d892103bc30cfca493d9ecfc0410c7651e"
+  },
+  {
+    "path": "arkseek/Start-Admin.ps1",
+    "sha256": "5309e2e9df70dd2fd32d2f81ab71f23b4d69318b19538bb0b211d044b9188aef"
+  },
+  {
+    "path": "docs/admin-console.md",
+    "sha256": "e71963f9a0efbe73c080cb305239ee7ecf7ddf8aee7393f81ac39a21c1699f7f"
+  },
+  {
+    "path": "README.md",
+    "sha256": "72f6e5d8f177b75e0d177507b826ca7c1ad68f1ebf1efcca8dc2fe844b6ab812"
+  }
+]

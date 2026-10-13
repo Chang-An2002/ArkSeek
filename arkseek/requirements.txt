@@ -1,0 +1,41 @@
+# 当前云端沙盒环境访问不了 PyPI，所以核心逻辑（chunking / BM25 / RRF）全部用
+# Python 标准库 + numpy + scikit-learn 手写，这两个包沙盒里已经有，不用额外装。
+#
+# 下面这些是"升级到真实语义embedding"需要的依赖，在你自己电脑上能联网装的时候装一下：
+#   pip install -r requirements.txt
+# 装好之后 dense_retriever.py 会自动检测并使用真实的 BGE 系列模型，不需要改代码。
+
+sentence-transformers>=3.0.0   # 加载 BAAI/bge-m3（向量，中英通用；知识库扩充时从bge-small-zh-v1.5换过来）和 BAAI/bge-reranker-v2-m3
+                                # （精排，用它自带的 CrossEncoder 接口）——同一个库，不用额外装包
+jieba>=0.42.1                  # 更好的中文分词，可选：装了之后可以把 sparse_retriever.py
+                                # 里的 tokenize() 换成 jieba.lcut()，比现在的字符二元组更准
+
+chromadb>=1.0.0               # 向量数据库：L3知识库和L2对话历史的稠密检索持久化存储（见chroma_index.py）。
+                                # 装不上时自动退回内存版向量检索，结果不变，但启动/翻旧账都要现算向量，
+                                # 且会打印醒目的降级提示、在chat_cli.py的/status里也能看到
+
+# 下面这些是知识库扩充（QQ群压力测试准备（三））需要的依赖，见doc_loaders.py / kb_sources.py：
+pymupdf>=1.24.0                # 读PDF文献原文（按文本块读，用来识别并去掉参考文献、页眉页脚）
+python-docx>=1.1.0             # 读Word版JC讲稿
+python-pptx>=1.0.0             # 读JC的PPT
+requests>=2.31.0               # 访问Zotero 7的本地接口（localhost:23119）和联网搜索接口
+
+# 阶段三（接入QQ）：官方Python SDK，WebSocket接收事件，接入层见 src/qq_bot.py
+qq-botpy>=1.2.1
+aiohttp>=3.14.3                # 本机只读管理后台；QQ SDK 当前也使用此依赖
+
+# 精排加速（2026-09-30，回复慢）：精排模型用Intel OpenVINO跑在核显上，见reranker.py"精排加速"。
+# 会把transformers定在5.5.x（optimum-intel的要求），所以项目用自己的.venv，不跟全局Python共用。
+# 各库的确切版本见 requirements.lock.txt。
+sentence-transformers[openvino]
+datasets                       # 只有build_openvino_reranker.py做int8量化校准时用
+onnx                           # 只有build_onnx_reranker.py（ONNX Runtime对照实验）用；onnxruntime本身是chromadb的依赖
+onnxscript                     # 同上，torch新的dynamo导出器需要
+
+# 下面这个是阶段二2.2（接LLM）需要的依赖：
+openai>=1.0.0                  # llm_client.py 用它调用MiniMax的OpenAI兼容接口（不是在用OpenAI
+                                # 官方服务，只是复用这个业界最通用的SDK，把base_url指向MiniMax）
+python-dotenv>=1.0.0           # 可选：如果你想用项目根目录下的 .env 文件存 MINIMAX_API_KEY，
+                                # 而不是设系统环境变量，装这个包、在 chat_cli.py 开头加两行
+                                # `from dotenv import load_dotenv; load_dotenv()` 就行。
+                                # .env 文件本身记得加进 .gitignore，不要传到GitHub上。
