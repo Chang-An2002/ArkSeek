@@ -54,6 +54,9 @@
 import argparse
 import os
 import sys
+from runtime_settings import apply_settings, exclusive_runtime
+if __name__ == "__main__":
+    apply_settings()
 
 from pipeline import MemorySystemPipeline
 from memory_store import MemoryStore
@@ -99,6 +102,7 @@ def _format_status(kb_pipeline, session, llm_client) -> str:
     return "\n".join(lines)
 
 
+@exclusive_runtime
 def main():
     parser = argparse.ArgumentParser(description="记忆系统多轮对话命令行（默认2.2接LLM，--no-llm可退回2.1）")
     parser.add_argument("--reset", action="store_true", help="开始前清空这个用户的L1/L2记忆，从头开始")

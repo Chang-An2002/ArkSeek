@@ -1,6 +1,7 @@
 param(
     [switch]$Live,
     [switch]$Demo,
+    [switch]$Manage,
     [switch]$NoBrowser,
     [ValidateRange(1, 65535)][int]$Port = 8766
 )
@@ -18,7 +19,9 @@ $adminStamp = Get-Date -Format 'yyyyMMdd_HHmmss_ffff'
 $adminOut = Join-Path $adminLogDir "admin_$adminStamp.out.log"
 $adminErr = Join-Path $adminLogDir "admin_$adminStamp.err.log"
 $adminMode = if ($Live) { '--live' } else { '--demo' }
-$adminProcess = Start-Process -FilePath $adminPython -ArgumentList @('-u', '-m', 'admin', $adminMode, '--port', $Port) -WorkingDirectory $adminRoot -WindowStyle Hidden -RedirectStandardOutput $adminOut -RedirectStandardError $adminErr -PassThru
+$adminArguments = @('-u', '-m', 'admin', $adminMode, '--port', $Port)
+if ($Manage) { $adminArguments += '--manage' }
+$adminProcess = Start-Process -FilePath $adminPython -ArgumentList $adminArguments -WorkingDirectory $adminRoot -WindowStyle Hidden -RedirectStandardOutput $adminOut -RedirectStandardError $adminErr -PassThru
 $adminUrl = "http://127.0.0.1:$Port"
 $adminReady = $false
 for ($adminAttempt = 0; $adminAttempt -lt 12; $adminAttempt++) {

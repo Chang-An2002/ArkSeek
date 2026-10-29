@@ -1059,8 +1059,8 @@ class ConversationSession:
         for key, value in updates:
             if value == PROFILE_DELETE:  # 这一项全部不成立了（见llm_l1.py："不喜欢"里唯一一项被移走等）
                 if key in profile:
-                    self.store.delete_profile_fact(self.user_id, key)
-                    written.append((key, PROFILE_DELETE, profile[key]))
+                    if self.store.delete_profile_fact(self.user_id, key) is not False:
+                        written.append((key, PROFILE_DELETE, profile[key]))
                 continue
             if profile.get(key) == value:
                 continue
@@ -1068,8 +1068,8 @@ class ConversationSession:
             if not supported_profile_fact(key, value, text):
                 print(f"[conversation_memory] 拒绝无依据画像字段：{key}")
                 continue
-            self.store.upsert_profile_fact(self.user_id, key, value, source_text=text)
-            written.append((key, value, profile.get(key)))
+            if self.store.upsert_profile_fact(self.user_id, key, value, source_text=text) is not False:
+                written.append((key, value, profile.get(key)))
         return written
 
     @staticmethod
@@ -1085,12 +1085,14 @@ class ConversationSession:
         """2.1规则版L1（LLM不可用时的legacy链路专用）：正则抽取+正则识别画像问题，
         能答就当场返回。LLM可用时不再走这里，见`_l1_write()`。"""
         new_facts = extract_facts(text)
+        written = []
         for key, value in new_facts:
-            self.store.upsert_profile_fact(self.user_id, key, value, source_text=text)
+            if self.store.upsert_profile_fact(self.user_id, key, value, source_text=text) is not False:
+                written.append((key, value))
 
         reply = self._try_answer_from_profile(text)
-        if reply is None and new_facts and not looks_like_question(text):
-            lines = [f"{k}：{v}" for k, v in new_facts]
+        if reply is None and written and not looks_like_question(text):
+            lines = [f"{k}：{v}" for k, v in written]
             reply = "【L1核心记忆——已记住】\n" + "\n".join(lines)
         return reply
 
@@ -1693,17 +1695,15 @@ class ConversationSession:
 
         if not results:
             core = f"按条件（{criteria}）没有查到符合条件的干员。"
-            display = f"【L3知识库——明日方舟Cargo结构化查询】{core}"
+            display = (f"【L3知识库——明日方舟Cargo结构化查询】{core}"
+                       "\n\n来源：PRTS干员数据库（https://prts.wiki/w/干员一览）。")
             return SubAnswer(display=display, core=core, ok=True, source="wiki", refs=["prts.wiki干员数据库"])
 
         names = "、".join(r["name"] for r in results)
         core = f"符合条件（{criteria}）的干员共{len(results)}个：{names}"
         display = (f"【L3知识库——明日方舟Cargo结构化查询，直接查询干员数据库】\n{core}"
-                   f"\n\n数据来源：prts.wiki Cargo结构化数据（chara表），不是LLM生成的文字，"
-                   f"不存在编造名字的风险；如果这个数字跟prts.wiki“干员一览”页面显示的筛选"
-                   f"结果相比差1-2个，大概率是因为该页面单独排除了“专属干员”（仅限特殊模式"
-                   f"使用），这里的查询没有做这层过滤，是已知的、如实记录的口径差异，不是"
-                   f"查询本身出错——详见`prts_cargo_client.py`模块开头的说明。")
+                   "\n\n来源：PRTS干员数据库（https://prts.wiki/w/干员一览）。"
+                   "\n说明：此名单未排除特殊模式专属干员，数据以PRTS当前记录为准。")
         return SubAnswer(display=display, core=core, ok=True, source="wiki", refs=["prts.wiki干员数据库"])
 
     # ---------- 本地知识库：文献目录（列清单类问题） ----------
@@ -1945,7 +1945,9 @@ class ConversationSession:
         if route is None:
             return None
 
-        print(f"[conversation_memory] 路由结果：{route['route']}，检索主题={route.get('retrieval_query', '')!r}")
+        print(f"[conversation_memory] 路由结果：{route['route']}，"
+              f"needs_search={route.get('needs_search', False)}，"
+              f"检索主题={route.get('retrieval_query', '')!r}")
         if route["route"] == "general":
             if route.get("needs_search"):
                 # 客观问题（主观/客观区分见wiki_router.py的needs_search）：走联网

@@ -39,11 +39,25 @@ def create_demo(directory):
         conn.executescript(SCHEMA)
         conn.execute("INSERT INTO runtime VALUES ('demo',0,?,?,'stopped',0)", (stamp(300), stamp(10)))
         for i, (status, wait, duration) in enumerate([("sent", 0, 5200), ("sent", 2100, 18200), ("send_failed", 0, 7400), ("processing_failed", 300, 9200)]):
-            received = now - timedelta(seconds=80 - i * 12)
+            received = now - timedelta(seconds=400 - i * 100)
             started = received + timedelta(milliseconds=wait)
             finished = received + timedelta(milliseconds=duration)
             spans = [{"start_ms": 0, "duration_ms": 1000, "name": "召回", "task": None}, {"start_ms": 1000, "duration_ms": 3500, "name": "LLM", "task": "q1"}, {"start_ms": 1600, "duration_ms": 2400, "name": "LLM", "task": "画像判断"}, {"start_ms": 4500, "duration_ms": 400, "name": "发送", "task": None}]
             conn.execute("INSERT INTO requests VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (f"demo-{i}", "demo", group, a if i % 2 == 0 else b, received.isoformat(), started.isoformat(), finished.isoformat(), status, wait, duration, "DemoError" if status != "sent" else None, json.dumps(spans)))
+        # Fictional history spans seven days. These records never imply a live QQ connection.
+        for i in range(72):
+            received = now - timedelta(hours=3 + i * 2)
+            cid = private if i % 3 == 0 else group
+            wait = (i % 6) * 3500 if cid == group else 0
+            duration = wait + 4000 + (i % 5) * 5700
+            status = "send_failed" if i % 17 == 0 else "sent"
+            conn.execute("INSERT INTO requests VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (f"history-{i}", "demo", cid, private if cid == private else (a if i % 2 else b), received.isoformat(), (received + timedelta(milliseconds=wait)).isoformat(), (received + timedelta(milliseconds=duration)).isoformat(), status, wait, duration, "DemoError" if status != "sent" else None, "[]"))
+        # Three overlapping arrivals, whose processing starts remain sequential.
+        for i, (ago, wait, duration) in enumerate([(90, 0, 24000), (86, 20000, 54000), (81, 50000, 76000)]):
+            received = now - timedelta(seconds=ago)
+            work = duration - wait
+            spans = [{"name": "处理", "task": None, "start_ms": 0, "duration_ms": work - 600}, {"name": "发送", "task": None, "start_ms": work - 600, "duration_ms": 600}]
+            conn.execute("INSERT INTO requests VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", (f"queue-{i}", "demo", group, a if i % 2 == 0 else b, received.isoformat(), (received + timedelta(milliseconds=wait)).isoformat(), (received + timedelta(milliseconds=duration)).isoformat(), "sent", wait, duration, None, json.dumps(spans)))
         conn.commit()
     logs = directory / "runtime_logs"
     logs.mkdir()

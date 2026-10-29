@@ -69,8 +69,10 @@ except ImportError:
     pass
 
 from runtime_logging import install_runtime_logging
+from runtime_settings import apply_settings, exclusive_runtime
 
 if __name__ == "__main__":
+    apply_settings()
     install_runtime_logging()
 
 import botpy
@@ -335,6 +337,7 @@ class MemoryBotClient(botpy.Client):
             return False
 
 
+@exclusive_runtime
 def main():
     appid = os.environ.get("QQ_BOT_APPID")
     secret = os.environ.get("QQ_BOT_SECRET")

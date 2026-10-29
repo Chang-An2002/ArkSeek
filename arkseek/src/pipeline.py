@@ -90,6 +90,9 @@ class MemorySystemPipeline:
             self.chunks: List[Chunk] = kb_sources.load_knowledge_sources(kb_dir, self.catalog)
         else:
             self.chunks = load_knowledge_base(kb_dir)
+        from admin_knowledge import load_admin_chunks
+        from pathlib import Path
+        self.chunks.extend(load_admin_chunks(Path(kb_dir).resolve().parent, start_chunk_id=len(self.chunks)))
         if not self.chunks:
             raise ValueError(f"知识库目录 {kb_dir} 下没有找到任何文档")
 

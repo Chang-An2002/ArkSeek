@@ -45,6 +45,7 @@ import inspect
 import os
 import sqlite3
 import threading
+from profile_rules import has_rules, rules_for, effective_fact
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
@@ -149,37 +150,41 @@ class MemoryStore:
     # ---------- L1：用户画像 ----------
 
     def upsert_profile_fact(self, user_id: str, key: str, value: str,
-                             source_text: str = "") -> None:
-        """写入/覆盖一条用户画像事实。同一个 (user_id, key) 再次写入会覆盖旧值
-        （比如"研究方向"从"生物信息学"更新成更具体的说法），这对应方案文档
-        4.3节 L1 的"增/改/删"里的"改"；"删"目前没有对应的规则触发场景，暂不实现。
-        """
-        self.conn.execute(
+                             source_text: str = "") -> bool:
+        """自动抽取写入；管理员锁定/停用的键不允许被后续抽取覆盖。"""
+        managed = has_rules(self.conn)
+        guard = " WHERE NOT EXISTS (SELECT 1 FROM admin_profile_rules WHERE user_id=? AND key=?)" if managed else " WHERE 1"
+        args = (user_id, key, value, source_text, _now_iso()) + ((user_id, key) if managed else ())
+        cursor = self.conn.execute(
             """
             INSERT INTO user_profile (user_id, key, value, source_text, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            SELECT ?, ?, ?, ?, ?
+            """ + guard + """
             ON CONFLICT (user_id, key) DO UPDATE SET
                 value = excluded.value,
                 source_text = excluded.source_text,
                 updated_at = excluded.updated_at
             """,
-            (user_id, key, value, source_text, _now_iso()),
+            args,
         )
         self.conn.commit()
+        return cursor.rowcount > 0
 
-    def delete_profile_fact(self, user_id: str, key: str) -> None:
+    def delete_profile_fact(self, user_id: str, key: str) -> bool:
         """删掉一条画像（2026-10-01："不喜欢"里唯一的一项被移走等，画像抽取给value=
         "（无）"时调用）。"""
-        self.conn.execute("DELETE FROM user_profile WHERE user_id = ? AND key = ?", (user_id, key))
+        guard = " AND NOT EXISTS (SELECT 1 FROM admin_profile_rules WHERE user_id=? AND key=?)" if has_rules(self.conn) else ""
+        cursor = self.conn.execute("DELETE FROM user_profile WHERE user_id = ? AND key = ?"+guard, (user_id, key) + ((user_id, key) if guard else ()))
         self.conn.commit()
+        return cursor.rowcount > 0
 
     def get_profile(self, user_id: str) -> Dict[str, str]:
         rows = self.conn.execute(
             "SELECT key, value, source_text FROM user_profile WHERE user_id = ?", (user_id,)
         ).fetchall()
-        from profile_facts import supported_profile_fact
-        return {row["key"]: row["value"] for row in rows
-                if supported_profile_fact(row["key"], row["value"], row["source_text"] or "")}
+        rules = rules_for(self.conn, user_id)
+        facts = [effective_fact(row, rules.get(row["key"])) for row in rows]
+        return {r["key"]: r["value"] for r in facts if r["effective"]}
 
     # ---------- L2：对话历史 ----------
 
@@ -279,6 +284,8 @@ class MemoryStore:
         """清空某个用户的 L0摘要+L1+L2 数据。主要给批量测试脚本用——每段模拟
         对话开始前重置，保证测试用例之间互不污染（也可以给每段测试用例分配
         独立的 user_id，两种方式都行，reset更直接）。"""
+        if has_rules(self.conn):
+            self.conn.execute("DELETE FROM admin_profile_rules WHERE user_id=?", (user_id,))
         self.conn.execute("DELETE FROM user_profile WHERE user_id = ?", (user_id,))
         self.conn.execute("DELETE FROM display_name WHERE user_id = ?", (user_id,))
         self.conn.execute("DELETE FROM conversation_turns WHERE user_id = ?", (user_id,))
@@ -323,6 +330,8 @@ class MemoryStore:
                 "DELETE FROM conversation_turns WHERE user_id = ? AND turn_index = ?",
                 [(conversation_id, ti) for ti in doomed],
             )
+        if has_rules(self.conn):
+            self.conn.execute("DELETE FROM admin_profile_rules WHERE user_id=?", (member_id,))
         self.conn.execute("DELETE FROM user_profile WHERE user_id = ?", (member_id,))
         self.conn.execute("DELETE FROM display_name WHERE user_id = ?", (member_id,))
         self.conn.execute("DELETE FROM l0_summary WHERE user_id = ?", (conversation_id,))

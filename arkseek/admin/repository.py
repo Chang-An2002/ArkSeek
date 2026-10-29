@@ -3,13 +3,62 @@ import hashlib
 import json
 import re
 import sqlite3
+import math
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 
 class DataUnavailable(Exception):
     pass
+
+
+CHINA = timezone(timedelta(hours=8))
+ACTIVE = {"queued", "processing", "sending"}
+FAILED = {"failed", "send_failed", "processing_failed", "interrupted"}
+
+
+def timestamp(value):
+    try:
+        parsed = datetime.fromisoformat(value)
+        return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    except (TypeError, ValueError):
+        return None
+
+
+def percentile(values, fraction):
+    values = sorted(v for v in values if isinstance(v, (int, float)) and math.isfinite(v) and v >= 0)
+    if not values:
+        return None
+    position = (len(values) - 1) * fraction
+    lo, hi = math.floor(position), math.ceil(position)
+    return round(values[lo] + (values[hi] - values[lo]) * (position - lo), 1)
+
+
+def time_window(range_key="24h", day=None, hour=None, now=None):
+    now = now or datetime.now(timezone.utc)
+    local = now.astimezone(CHINA)
+    midnight = local.replace(hour=0, minute=0, second=0, microsecond=0)
+    if range_key == "today":
+        start = midnight
+    elif range_key == "7d":
+        start = midnight - timedelta(days=6)
+    elif range_key in ("1h", "24h", "168h"):
+        start = now - timedelta(hours=int(range_key[:-1]))
+    else:
+        raise ValueError("时间范围不正确")
+    end = now
+    if hour is not None and (day is None or not 0 <= hour <= 23):
+        raise ValueError("小时筛选需要有效日期")
+    if day is not None:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+            raise ValueError("日期格式不正确")
+        selected = datetime.fromisoformat(day).replace(tzinfo=CHINA)
+        if hour is not None:
+            selected += timedelta(hours=hour)
+        start = max(start, selected)
+        end = min(end, selected + (timedelta(hours=1) if hour is not None else timedelta(days=1)))
+    return start.astimezone(timezone.utc), end.astimezone(timezone.utc)
 
 
 def kind(identifier):
@@ -139,7 +188,8 @@ class Repository:
                     "total": total, "has_more": has_more, "next_before": rows[0]["turn_index"] if rows else None,
                     "summary": summary}
 
-    def users(self, query="", offset=0, limit=50):
+    def users(self, query="", offset=0, limit=50, profile_state="all"):
+        from profile_facts import supported_profile_fact
         with self.connect() as conn:
             names = self.names(conn)
             # Preserve the project's identity namespaces; no cross-group person merge.
@@ -151,8 +201,13 @@ class Repository:
             for uid in ids:
                 if query and query.casefold() not in (self.label(uid, names) + " " + uid).casefold():
                     continue
-                count = conn.execute("SELECT COUNT(*) FROM user_profile WHERE user_id=?", (uid,)).fetchone()[0]
-                items.append({"id": uid, "name": self.label(uid, names), "channel": kind(uid), "profile_count": count,
+                facts = conn.execute("SELECT key,value,source_text FROM user_profile WHERE user_id=?", (uid,)).fetchall()
+                from profile_rules import rules_for, effective_fact
+                rules = rules_for(conn, uid)
+                blocked = sum(not effective_fact(f, rules.get(f["key"]))["effective"] for f in facts)
+                if profile_state == "blocked" and not blocked:
+                    continue
+                items.append({"id": uid, "name": self.label(uid, names), "channel": kind(uid), "profile_count": len(facts), "blocked_count": blocked,
                               "scope": "本群身份" if kind(uid) == "group" else ("私聊身份" if kind(uid) == "private" else "本机对话身份")})
             items.sort(key=lambda x: (x["name"], x["id"]))
             return {"items": items[offset:offset + limit], "total": len(items), "offset": offset, "limit": limit}
@@ -162,9 +217,10 @@ class Repository:
         with self.connect() as conn:
             names = self.names(conn)
             profiles = []
+            from profile_rules import rules_for, effective_fact
+            rules = rules_for(conn, uid)
             for row in conn.execute("SELECT key,value,source_text,updated_at FROM user_profile WHERE user_id=? ORDER BY key", (uid,)):
-                item = dict(row)
-                item["effective"] = supported_profile_fact(item["key"], item["value"], item["source_text"] or "")
+                item = effective_fact(row, rules.get(row["key"]))
                 profiles.append(item)
             if self.speaker_expr(conn) == "speaker":
                 rows = conn.execute("SELECT DISTINCT user_id FROM conversation_turns WHERE speaker=? OR user_id=?", (uid, uid)).fetchall()
@@ -175,35 +231,133 @@ class Repository:
             return {"id": uid, "name": self.label(uid, names), "channel": kind(uid), "profiles": profiles,
                     "conversations": [{"id": r[0], "name": self.label(r[0], names)} for r in rows]}
 
-    def monitor(self, status="all", offset=0, limit=50, hours=24):
+    @staticmethod
+    def decorate_request(row, live, names):
+        r = dict(row)
+        r["recorded_status"] = r["status"]
+        if (r["status"] in ACTIVE and r["run_id"] not in live) or r["status"] not in ACTIVE | FAILED | {"sent"}:
+            r["status"] = "unknown"
+        try:
+            spans = json.loads(r.pop("spans_json") or "[]")
+            r["spans"] = spans if isinstance(spans, list) else []
+        except (TypeError, ValueError):
+            r["spans"] = []
+        r["conversation_name"] = Repository.label(r["conversation_id"], names)
+        r["user_name"] = Repository.label(r["user_id"], names)
+        return r
+
+    def monitor(self, status="all", offset=0, limit=50, hours=24, range_key=None,
+                day=None, hour=None, conversation_id=None, sort="recent", duration_band=None):
+        start, end = time_window(range_key or f"{hours}h", day, hour)
+        names = {}
+        try:
+            with self.connect() as memory:
+                names = self.names(memory)
+        except (DataUnavailable, sqlite3.Error):
+            pass
         with self.connect("admin_monitor.db") as conn:
-            runtimes = [dict(r) for r in conn.execute("SELECT * FROM runtime ORDER BY started_at DESC LIMIT 20")]
+            runtimes = [dict(r) for r in conn.execute("SELECT * FROM runtime ORDER BY started_at DESC")]
             live = {r["run_id"] for r in runtimes if r["state"] != "stopped" and age(r["heartbeat_at"]) < 10}
             for r in runtimes:
                 r["heartbeat_live"] = r["run_id"] in live
-            where = "julianday(received_at)>=julianday('now',?)"
-            args = [f"-{hours} hours"]
-            rows = [dict(r) for r in conn.execute(f"SELECT * FROM requests WHERE {where} ORDER BY received_at DESC LIMIT 10000", args)]
-            for r in rows:
-                r["recorded_status"] = r["status"]
-                if r["status"] in ("queued", "processing", "sending") and r["run_id"] not in live:
-                    r["status"] = "unknown"
-                try:
-                    r["spans"] = json.loads(r.pop("spans_json") or "[]")
-                except (TypeError, ValueError):
-                    r["spans"] = []
-                r["conversation_name"] = self.label(r["conversation_id"], {})
-                r["user_name"] = self.label(r["user_id"], {})
+            where = "julianday(received_at)>=julianday(?) AND julianday(received_at)<julianday(?)"
+            args = [start.isoformat(), end.isoformat()]
+            if conversation_id:
+                where += " AND conversation_id=?"
+                args.append(conversation_id)
+            if duration_band:
+                bands = {"under10": (0, 10000), "10to30": (10000, 30000), "30to60": (30000, 60000), "over60": (60000, None)}
+                if duration_band not in bands:
+                    raise ValueError("耗时范围不正确")
+                lower, upper = bands[duration_band]
+                where += " AND finished_at IS NOT NULL AND total_ms>=?"
+                args.append(lower)
+                if upper is not None:
+                    where += " AND total_ms<?"
+                    args.append(upper)
+            matched = conn.execute(f"SELECT COUNT(*) FROM requests WHERE {where}", args).fetchone()[0]
+            rows = [self.decorate_request(r, live, names) for r in conn.execute(f"SELECT * FROM requests WHERE {where} ORDER BY julianday(received_at) DESC,request_id DESC LIMIT 10000", args)]
+            earliest = conn.execute("SELECT received_at FROM requests WHERE julianday(received_at) IS NOT NULL ORDER BY julianday(received_at) LIMIT 1").fetchone()
+            recorded_from = earliest[0] if earliest else None
             summary = {"total": len(rows), "queued": 0, "processing": 0, "sending": 0, "sent": 0, "failed": 0, "unknown": 0}
             for r in rows:
-                category = r["status"] if r["status"] in summary else "failed"
+                category = "failed" if r["status"] in FAILED else r["status"]
                 summary[category] += 1
-            durations = sorted(r["total_ms"] for r in rows if r["total_ms"] is not None)
-            summary["median_ms"] = (durations[(len(durations) - 1) // 2] + durations[len(durations) // 2]) / 2 if durations else None
-            selected = rows if status == "all" else [r for r in rows if r["status"] == status or (status == "failed" and r["status"] in ("failed", "send_failed", "processing_failed", "interrupted"))]
-            return {"runtimes": runtimes, "summary": summary, "items": selected[offset:offset + limit],
+            summary["median_ms"] = percentile([r["total_ms"] for r in rows if r["finished_at"]], .5)
+            selected = rows if status == "all" else [r for r in rows if r["status"] == status or (status == "failed" and r["status"] in FAILED)]
+            if sort not in ("recent", "slowest", "queue"):
+                raise ValueError("排序不正确")
+            if sort != "recent":
+                field = "total_ms" if sort == "slowest" else "queue_ms"
+                selected.sort(key=lambda r: r[field] if isinstance(r[field], (int, float)) and r[field] >= 0 else -1, reverse=True)
+            return {"runtimes": [r for i, r in enumerate(runtimes) if i < 20 or r["heartbeat_live"]], "summary": summary, "items": selected[offset:offset + limit],
                     "total": len(selected), "offset": offset, "limit": limit, "hours": hours,
-                    "capped": len(rows) == 10000}
+                    "capped": matched > 10000, "matched": matched, "recorded_from": recorded_from,
+                    "window": {"start": start.isoformat(), "end": end.isoformat(), "range": range_key or f"{hours}h"}}
+
+    def analytics(self, range_key="24h", conversation_id=None):
+        data = self.monitor(limit=10000, range_key=range_key, conversation_id=conversation_id)
+        rows = data.pop("items")
+        start, end = timestamp(data["window"]["start"]), timestamp(data["window"]["end"])
+        hourly = range_key != "7d"
+        cursor = start.astimezone(CHINA).replace(minute=0, second=0, microsecond=0)
+        if not hourly:
+            cursor = cursor.replace(hour=0)
+        buckets = {}
+        step = timedelta(hours=1) if hourly else timedelta(days=1)
+        while cursor < end:
+            day, hour = cursor.strftime("%Y-%m-%d"), cursor.hour if hourly else None
+            buckets[(day, hour)] = {"day": day, "hour": hour, "label": cursor.strftime("%m/%d %H时" if hourly else "%m/%d"),
+                                    "count": 0, "sent": 0, "failed": 0, "totals": [], "queues": []}
+            cursor += step
+        groups = {}
+        counts = {key: 0 for key in ("sent", "processing_failed", "send_failed", "failed", "interrupted", "queued", "processing", "sending", "unknown")}
+        bands = [{"id": key, "label": label, "count": 0} for key, label in (("under10", "小于10秒"), ("10to30", "10–30秒"), ("30to60", "30–60秒"), ("over60", "60秒及以上"))]
+        finished_values, queues, active_users = [], [], set()
+        for r in rows:
+            counts[r["status"]] += 1
+            if r["user_id"]:
+                active_users.add(r["user_id"])
+            total, queue_ms = r["total_ms"], r["queue_ms"]
+            valid_total = isinstance(total, (int, float)) and math.isfinite(total) and total >= 0 and r["finished_at"] is not None
+            valid_queue = isinstance(queue_ms, (int, float)) and math.isfinite(queue_ms) and queue_ms >= 0
+            if valid_total:
+                finished_values.append(total)
+                bands[0 if total < 10000 else 1 if total < 30000 else 2 if total < 60000 else 3]["count"] += 1
+            if valid_queue:
+                queues.append(queue_ms)
+            moment = timestamp(r["received_at"]).astimezone(CHINA)
+            bucket = buckets.get((moment.strftime("%Y-%m-%d"), moment.hour if hourly else None))
+            if bucket is not None:
+                bucket["count"] += 1
+                bucket["sent"] += r["status"] == "sent"
+                bucket["failed"] += r["status"] in FAILED
+                if valid_total:
+                    bucket["totals"].append(total)
+                if valid_queue:
+                    bucket["queues"].append(queue_ms)
+            group = groups.setdefault(r["conversation_id"], {"id": r["conversation_id"], "name": r["conversation_name"], "channel": kind(r["conversation_id"]), "count": 0, "failed": 0, "queues": [], "totals": []})
+            group["count"] += 1
+            group["failed"] += r["status"] in FAILED
+            if valid_queue:
+                group["queues"].append(queue_ms)
+            if valid_total:
+                group["totals"].append(total)
+        for bucket in buckets.values():
+            bucket["median_ms"] = percentile(bucket.pop("totals"), .5)
+            bucket["queue_median_ms"] = percentile(bucket.pop("queues"), .5)
+        for group in groups.values():
+            group["queue_median_ms"] = percentile(group.pop("queues"), .5)
+            group["median_ms"] = percentile(group.pop("totals"), .5)
+        summary = data["summary"]
+        summary.update(users=len(active_users), conversations=len(groups), completed_samples=len(finished_values),
+                       missing_duration=len(rows) - len(finished_values), queue_samples=len(queues),
+                       p90_ms=percentile(finished_values, .9), queue_median_ms=percentile(queues, .5),
+                       sent_rate=round(counts["sent"] / len(rows) * 100, 1) if rows else None)
+        data.update(series=list(buckets.values()), outcomes=counts, distribution=bands,
+                    groups=sorted(groups.values(), key=lambda g: (-g["count"], g["id"])),
+                    recent=rows[:6], slowest=sorted([r for r in rows if r["total_ms"] is not None], key=lambda r: r["total_ms"], reverse=True)[:5])
+        return data
 
     def overview(self):
         result = {"memory_available": False, "monitor_available": False, "notice": []}
@@ -228,19 +382,9 @@ class Repository:
             row = conn.execute("SELECT * FROM requests WHERE request_id=?", (request_id,)).fetchone()
             if row is None:
                 raise KeyError(request_id)
-            r = dict(row)
-            runtime = conn.execute("SELECT * FROM runtime WHERE run_id=?", (r["run_id"],)).fetchone()
-            live = runtime and runtime["state"] != "stopped" and age(runtime["heartbeat_at"]) < 10
-            r["recorded_status"] = r["status"]
-            if r["status"] in ("queued", "processing", "sending") and not live:
-                r["status"] = "unknown"
-            try:
-                r["spans"] = json.loads(r.pop("spans_json") or "[]")
-            except (TypeError, ValueError):
-                r["spans"] = []
-            r["conversation_name"] = self.label(r["conversation_id"], {})
-            r["user_name"] = self.label(r["user_id"], {})
-            return r
+            runtime = conn.execute("SELECT * FROM runtime WHERE run_id=?", (row["run_id"],)).fetchone()
+            live = {row["run_id"]} if runtime and runtime["state"] != "stopped" and age(runtime["heartbeat_at"]) < 10 else set()
+            return self.decorate_request(row, live, {})
 
     def log_files(self):
         if not self.log_dir.is_dir():

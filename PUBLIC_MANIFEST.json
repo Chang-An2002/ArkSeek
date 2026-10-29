@@ -5,7 +5,7 @@
   },
   {
     "path": ".gitignore",
-    "sha256": "4b1de1c072c12a95f27229650b2858ffb85fa020ffa5cebae7511b30f1e7fdbd"
+    "sha256": "ad4b8e48eff02fa92b72103f7660be707dd82f859ca5eeb44eb56b84e3cb5f3e"
   },
   {
     "path": "arkseek/.env.example",
@@ -17,35 +17,55 @@
   },
   {
     "path": "arkseek/admin/__main__.py",
-    "sha256": "8969bf4f68e1b6b6a2e64528252314794bb62cc1445cbd8e0f8828baa3eb60a0"
+    "sha256": "a24adc2f00f920955eeb6569db0b33ea5744b1f1bbf8a188d4097917501ad7cd"
   },
   {
     "path": "arkseek/admin/demo.py",
-    "sha256": "92a6a8ab01515022457cdc1ada211b37abd4351204fef4fd25ca6838e390abea"
+    "sha256": "7a3b88653f76e79455458360343be68528c019f6ab35a454802009cb49d6db8b"
+  },
+  {
+    "path": "arkseek/admin/management.py",
+    "sha256": "2baef3b1609a8c114bd2b9fb8853fad19417719fd6c30742921caf6b1406a761"
   },
   {
     "path": "arkseek/admin/repository.py",
-    "sha256": "5443be30ab61177077f21ae16b70bb2d8c364337bf7c528fa8573955147cf70d"
+    "sha256": "739f28fb04dfd0fd839f76131a481ff27764e65eb6e2a25936062898eef85537"
   },
   {
     "path": "arkseek/admin/server.py",
-    "sha256": "fdac8b96af032ede2039e197c89f88a8883afe7058bdb686d10e680335a8093f"
+    "sha256": "4c1c34e67d326931436e301632bfd37451bb8673a1794e4d19605571390b5427"
   },
   {
     "path": "arkseek/admin/test_admin.py",
-    "sha256": "ca428fb42f327d1303da80f1036dcdeae29ab285c62319e3d431b13ae75def07"
+    "sha256": "866ba0f38ac0510976e8126cb458f57f2f2c2bc375fcc9110987c8b327960dd0"
+  },
+  {
+    "path": "arkseek/admin/test_management.py",
+    "sha256": "849f6cd2cc29db743a84e479ea9390458b34eecf05b96783089403e1238e220a"
   },
   {
     "path": "arkseek/admin/web/app.css",
-    "sha256": "66dbb9193fe11d0d9920072a5e132dc59007bdb3a081b178f81ca14f2bd18803"
+    "sha256": "bd42ac14fbeb4686dd12d432d098a970e5f963a83b902ab4d488191a176a776f"
   },
   {
     "path": "arkseek/admin/web/app.js",
-    "sha256": "e485e35bfd087867614ef27841b928df2520b72376cb9f2022f0fc6a8909ea48"
+    "sha256": "ded486e9232d4c585d2a6ce484efe5cb637b59d0434c9667cd7067d55a3615ec"
+  },
+  {
+    "path": "arkseek/admin/web/charts.js",
+    "sha256": "f99cbbab97c9114197f3cad7aaa32deae8c392362a22cdf18d725b315ac22ad0"
   },
   {
     "path": "arkseek/admin/web/index.html",
-    "sha256": "7688f2d8cc10d79f0df3dcf5090377f8bf33d76fe9cec649f8ce72d91a46189c"
+    "sha256": "57a43dc6ba0de1ecd7fda22531546921e5601703ca283ab28cd5fcb336c6de58"
+  },
+  {
+    "path": "arkseek/admin/web/management.js",
+    "sha256": "b875f17832dbe22ae73bd0dddd61a91ab93f37591a560dd54b41d1528328c011"
+  },
+  {
+    "path": "arkseek/admin/worker.py",
+    "sha256": "5d6480c8a571b5e15e80d07652610491c5405aee298f8dd472284d2fbb73d12a"
   },
   {
     "path": "arkseek/data/knowledge_base/demo.txt",
@@ -57,7 +77,7 @@
   },
   {
     "path": "arkseek/README.md",
-    "sha256": "06c714416dad4325e34cef9ae2708efb8163b5b4294cf75a9d9d0f08609f300b"
+    "sha256": "7bb27b7abf794686ded637ae05d084d5298cafac160f2c83284852f8d0c3424a"
   },
   {
     "path": "arkseek/requirements.lock.txt",
@@ -66,6 +86,10 @@
   {
     "path": "arkseek/requirements.txt",
     "sha256": "2e7c23a43a32712c8adf2242039dccb3d2440a6dbc4af7dc123e2213f9469a8c"
+  },
+  {
+    "path": "arkseek/src/admin_knowledge.py",
+    "sha256": "abaf5d7f10270b78a047b5cd1ff570cca2cbaa6c75e9ec3302babae5b38efbe3"
   },
   {
     "path": "arkseek/src/admin_monitor.py",
@@ -89,7 +113,7 @@
   },
   {
     "path": "arkseek/src/chat_cli.py",
-    "sha256": "aaaaf416ef2c8a22e148137d293a3526793cc00ca3d7408b4c1aee06a8846d87"
+    "sha256": "63e9cf1e79c3137702241df13a8f7770c966f4c7392f012cb62b8c501a51d6ee"
   },
   {
     "path": "arkseek/src/chroma_index.py",
@@ -113,7 +137,7 @@
   },
   {
     "path": "arkseek/src/conversation_memory.py",
-    "sha256": "988f4cd512ce030b86aab163312965ec73b80a84609b32654bcfbe8a4ca4e136"
+    "sha256": "2f14d29394d24dd93f14fa6d314dc93d94b71dfb1fd9116a7a38e6e3b4c63f29"
   },
   {
     "path": "arkseek/src/dense_retriever.py",
@@ -169,7 +193,7 @@
   },
   {
     "path": "arkseek/src/memory_store.py",
-    "sha256": "54ed5609fac637289f473b3f3dd5e428be482b3441861a47e285802330445447"
+    "sha256": "395ed3be3815be78766a7f25128f4e03668177eea1476f05c098389d8bc568a7"
   },
   {
     "path": "arkseek/src/multiturn_test_cases.json",
@@ -177,11 +201,15 @@
   },
   {
     "path": "arkseek/src/pipeline.py",
-    "sha256": "9e44b71c43ebd67c2610bdf89e72db86047fd6ca74a037b59f2ef6b5c007e743"
+    "sha256": "8ea2352382c710ac6a64a82b0400b16c39845dc29e0e86aede88babf0633d22a"
   },
   {
     "path": "arkseek/src/profile_facts.py",
     "sha256": "c23549c29560682264a235c56d00321432d9529e51fe35c613859b6db1f9bc03"
+  },
+  {
+    "path": "arkseek/src/profile_rules.py",
+    "sha256": "f4b382ca41d2c44c90d90b2cf916c5599304053a1dc34db03fe07dcf7f9266c0"
   },
   {
     "path": "arkseek/src/prts_cargo_client.py",
@@ -193,7 +221,7 @@
   },
   {
     "path": "arkseek/src/qq_bot.py",
-    "sha256": "9763e42e069bf4ca3e65f813a07d5c9c2fa119e5abcd95d3433b32dce434a143"
+    "sha256": "099a004988525cf22f7c13cee26991bbf6ec23c88195db9601ed53790014cec8"
   },
   {
     "path": "arkseek/src/qq_bot_echo.py",
@@ -201,7 +229,7 @@
   },
   {
     "path": "arkseek/src/query_planner.py",
-    "sha256": "2ee2c1a56be5cb30b88deb6852a46f19ddb3f2ccc236cb7c5d57e4ba7cedb8ee"
+    "sha256": "5a09f654d11c2588f833cf44ca6b135317421c939465b274ef9e8edd2670857b"
   },
   {
     "path": "arkseek/src/query_synonyms.py",
@@ -340,12 +368,20 @@
     "sha256": "65d4034956da7d24c71e999295a196a1d0ced07b305bd27d86ad06bf4aee2997"
   },
   {
+    "path": "arkseek/src/run_submission_showcase_tests.py",
+    "sha256": "f49ef8f1b50e4e1a629991e4880905493d614df58bfe5bace207fa651c04aa14"
+  },
+  {
     "path": "arkseek/src/run_tests.py",
     "sha256": "3b7dd155f058730bbd3156ef26aaad949511f3a7cbd2b3e6c94a31f154f5fc55"
   },
   {
     "path": "arkseek/src/runtime_logging.py",
     "sha256": "dfdc0e6934ae5be907ae4651b18cc6f155f6b2f62f60bc55ad21ce7eaa633922"
+  },
+  {
+    "path": "arkseek/src/runtime_settings.py",
+    "sha256": "4b57a3c9f2c83795ff3f0901c352b366b14b8f2076b92c254e7e281bd3e4c561"
   },
   {
     "path": "arkseek/src/sparse_retriever.py",
@@ -365,18 +401,22 @@
   },
   {
     "path": "arkseek/src/wiki_router.py",
-    "sha256": "adf0902befebdfed141c9aa1761b23d892103bc30cfca493d9ecfc0410c7651e"
+    "sha256": "065c840bf196d4e9d813fa695277ae4a2328ab063214c2e7c95f1f98e99cfc5c"
   },
   {
     "path": "arkseek/Start-Admin.ps1",
-    "sha256": "5309e2e9df70dd2fd32d2f81ab71f23b4d69318b19538bb0b211d044b9188aef"
+    "sha256": "1756fe573eb6663ff8ee0cc74a1d66d78407f41b97bad127d036c2914243f0e5"
   },
   {
     "path": "docs/admin-console.md",
-    "sha256": "e71963f9a0efbe73c080cb305239ee7ecf7ddf8aee7393f81ac39a21c1699f7f"
+    "sha256": "a0d62d0860d7ce943d7767fb89747ffbc315d02d25e83bae507f03d2fa9d11d9"
+  },
+  {
+    "path": "docs/release-notes.md",
+    "sha256": "4dee9ec18403b833ce0ff8157130e8fdd9d0b06dba6106b30a6c5e2e668bf524"
   },
   {
     "path": "README.md",
-    "sha256": "72f6e5d8f177b75e0d177507b826ca7c1ad68f1ebf1efcca8dc2fe844b6ab812"
+    "sha256": "7291940052ac1e661218158f3eaec224e0450ad8ab6de80bb95825f46ecbfc63"
   }
 ]

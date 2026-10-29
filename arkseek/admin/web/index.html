@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ArkSeek · 管理后台</title>
   <link rel="stylesheet" href="/app.css">
+  <script src="/charts.js" defer></script>
+  <script src="/management.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -17,9 +19,11 @@
       <button data-view="users" type="button">用户与记忆</button>
       <button data-view="monitor" type="button">请求监测</button>
       <button data-view="logs" type="button">运行日志</button>
+      <button data-view="settings" type="button">运行与配置</button>
+      <button data-view="knowledge" type="button">知识库维护</button>
       <button data-view="roadmap" type="button">后续规划</button>
     </nav>
-    <div class="sidebar-foot"><span class="pill">第一版 · 只读</span><p>本机运行<br>QQ机器人独立运行</p></div>
+    <div class="sidebar-foot"><span class="pill" id="access-badge">正在检查权限</span><p>本机运行<br>QQ机器人独立运行</p></div>
   </aside>
   <div class="workspace">
     <header class="topbar"><span id="mode">正在连接后台</span><div class="top-actions"><label><input id="auto" type="checkbox" checked> 自动刷新</label><button id="refresh" type="button">刷新</button><button id="theme" type="button">切换主题</button></div></header>
@@ -30,5 +34,6 @@
     </main>
   </div>
 </div>
+<dialog id="detail-dialog" aria-labelledby="detail-title"><div class="drawer-head"><h2 id="detail-title">查看详情</h2><button id="close-detail" type="button" aria-label="关闭详情">关闭</button></div><div id="detail-body"></div></dialog>
 </body>
 </html>

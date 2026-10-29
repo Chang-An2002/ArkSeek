@@ -12,6 +12,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from datetime import datetime, timezone
 from unittest.mock import Mock
 
 BASE = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ from aiohttp import ClientTimeout
 import admin_monitor
 from timing import Trace
 from .demo import create_demo
-from .repository import Repository, DataUnavailable
+from .repository import Repository, DataUnavailable, time_window
 from .server import create_app
 
 
@@ -121,6 +122,67 @@ class RepositoryTests(unittest.TestCase):
         self.assertTrue(result["truncated"])
         self.assertNotIn("abcdef123", "\n".join(result["lines"]))
 
+    def test_beijing_midnight_and_hour_intersection(self):
+        now = datetime(2026, 10, 23, 1, 30, tzinfo=timezone.utc)
+        start, end = time_window("today", now=now)
+        self.assertEqual(start.isoformat(), "2026-10-22T16:00:00+00:00")
+        self.assertEqual(end, now)
+        start, end = time_window("7d", "2026-10-23", 0, now)
+        self.assertEqual(start.isoformat(), "2026-10-22T16:00:00+00:00")
+        self.assertEqual((end-start).total_seconds(), 3600)
+        for day, hour in ((None, 0), ("2026-02-30", None), ("2026-10-23", 24)):
+            with self.assertRaises(ValueError):
+                time_window("7d", day, hour, now)
+
+    def test_analytics_missing_duration_and_outcomes_are_separate(self):
+        with test_connection(self.root / "admin_monitor.db") as conn:
+            conn.execute("UPDATE requests SET status='processing',finished_at=NULL,total_ms=999999 WHERE request_id='demo-0'")
+            conn.execute("UPDATE requests SET total_ms=NULL,queue_ms=NULL WHERE request_id='demo-1'")
+        a = self.repo.analytics("7d")
+        self.assertEqual(sum(b["count"] for b in a["series"]), a["summary"]["total"])
+        self.assertEqual(sum(a["outcomes"].values()), a["summary"]["total"])
+        self.assertEqual(a["outcomes"]["unknown"], 1)
+        self.assertEqual(a["summary"]["missing_duration"], 2)
+        self.assertEqual(sum(b["count"] for b in a["distribution"]), a["summary"]["completed_samples"])
+        self.assertLess(a["summary"]["p90_ms"], 999999)
+        self.assertEqual(a["summary"]["users"], 3)
+        self.assertTrue(all(b["median_ms"] is None for b in a["series"] if b["count"] == 0))
+
+    def test_chart_drilldowns_match_chart_counts(self):
+        a = self.repo.analytics("7d")
+        for b in a["series"]:
+            self.assertEqual(self.repo.monitor(range_key="7d", day=b["day"])["total"], b["count"])
+        for band in a["distribution"]:
+            self.assertEqual(self.repo.monitor(range_key="7d", duration_band=band["id"])["total"], band["count"])
+        for group in a["groups"]:
+            self.assertEqual(self.repo.monitor(range_key="7d", conversation_id=group["id"])["total"], group["count"])
+        slow = self.repo.monitor(range_key="7d", sort="slowest")["items"]
+        self.assertEqual(slow[0]["request_id"], "queue-2")
+        blocked = self.repo.users(profile_state="blocked")["items"]
+        self.assertEqual([u["id"] for u in blocked], ["qq_group:demo:b"])
+
+    def test_analytics_keeps_both_databases_read_only(self):
+        digest = lambda: [hashlib.sha256((self.root / name).read_bytes()).hexdigest() for name in ("memory.db", "admin_monitor.db")]
+        before = digest()
+        self.repo.analytics("7d"); self.repo.monitor(sort="queue"); self.repo.users(profile_state="blocked")
+        self.assertEqual(before, digest())
+        with self.repo.connect("admin_monitor.db") as conn:
+            with self.assertRaises(sqlite3.OperationalError):
+                conn.execute("DELETE FROM requests")
+
+    def test_sample_cap_reports_only_when_exceeded(self):
+        with test_connection(self.root / "admin_monitor.db") as conn:
+            row = list(conn.execute("SELECT * FROM requests WHERE request_id='demo-0'").fetchone())
+            conn.execute("DELETE FROM requests")
+            conn.executemany("INSERT INTO requests VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", [(str(i), *row[1:]) for i in range(10000)])
+        self.assertFalse(self.repo.analytics()["capped"])
+        with test_connection(self.root / "admin_monitor.db") as conn:
+            conn.execute("INSERT INTO requests VALUES (?,?,?,?,?,?,?,?,?,?,?,?)", ("overflow", *row[1:]))
+        a = self.repo.analytics()
+        self.assertTrue(a["capped"])
+        self.assertEqual(a["matched"], 10001)
+        self.assertEqual(a["summary"]["total"], 10000)
+
 
 class HTTPTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
@@ -135,7 +197,7 @@ class HTTPTests(unittest.IsolatedAsyncioTestCase):
         self.tmp.cleanup()
 
     async def test_all_pages_and_read_endpoints(self):
-        endpoints = ["/", "/app.js", "/app.css", "/api/overview", "/api/sessions", "/api/conversation?id=qq_group:demo", "/api/users", "/api/user?id=qq_group:demo:a", "/api/monitor", "/api/request?id=demo-2", "/api/logs", "/api/log?name=bot_demo.log"]
+        endpoints = ["/", "/app.js", "/app.css", "/charts.js", "/api/analytics?range=7d", "/api/overview", "/api/sessions", "/api/conversation?id=qq_group:demo", "/api/users", "/api/user?id=qq_group:demo:a", "/api/monitor", "/api/request?id=demo-2", "/api/logs", "/api/log?name=bot_demo.log"]
         for endpoint in endpoints:
             response = await self.client.get(endpoint)
             self.assertEqual(response.status, 200, endpoint)
@@ -153,7 +215,7 @@ class HTTPTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(response.status, 403)
 
     async def test_pagination_validation_and_missing_records(self):
-        for endpoint in ("/api/users?limit=1000", "/api/sessions?offset=-1", "/api/monitor?hours=999", "/api/monitor?status=invented"):
+        for endpoint in ("/api/users?limit=1000", "/api/sessions?offset=-1", "/api/monitor?hours=999", "/api/monitor?status=invented", "/api/analytics?range=month", "/api/analytics?hour=0", "/api/monitor?day=2026-02-30", "/api/monitor?hour=25", "/api/monitor?sort=invalid", "/api/monitor?duration_band=invalid", "/api/users?profile_state=invalid"):
             response = await self.client.get(endpoint)
             self.assertEqual(response.status, 400, endpoint)
         response = await self.client.get("/api/log?name=../memory.db")
